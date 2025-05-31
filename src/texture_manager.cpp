@@ -54,8 +54,8 @@ unsigned TextureManager::buildTexture2D(const Texture2DInitInfo& texture2DInitIn
     return textureId;
 }
 
-void TextureManager::useTexture2D(const int textureSlot, const unsigned textureId)
+void TextureManager::useTexture2D(const int textureSlotId, const unsigned textureId)
 {
-    glActiveTexture(textureSlot);
+    glActiveTexture(GL_TEXTURE0 + textureSlotId);
     glBindTexture(GL_TEXTURE_2D, textureId);
 }

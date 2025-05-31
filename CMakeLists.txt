@@ -8,14 +8,16 @@ project(OpenGLLearn)
 # 子项目
 add_subdirectory(extern/glad)
 add_subdirectory(extern/glfw)
-add_subdirectory(extern/glm)
+add_subdirectory(extern/glm/glm)
 add_subdirectory(extern/stb_image)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources/
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources)
 
 # exe
-add_executable(OpenGLLearn)
+add_executable(OpenGLLearn
+        src/camera_manager.cpp
+        include/camera_manager.h)
 
 
 target_sources(OpenGLLearn PRIVATE
@@ -28,6 +30,7 @@ target_sources(OpenGLLearn PRIVATE
 
 # 头文件
 target_include_directories(OpenGLLearn PUBLIC include)
+target_include_directories(OpenGLLearn PRIVATE extern/glm)
 
 # link 库文件
 target_link_libraries(OpenGLLearn glfw)

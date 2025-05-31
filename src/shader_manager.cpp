@@ -1,4 +1,4 @@
-﻿#include "../include/shader_manager.h"
+﻿#include "shader_manager.h"
 
 #include <sstream>
 
@@ -124,6 +124,11 @@ void ShaderManager::setShaderUniform(const unsigned shaderProgramId, const std::
 {
     const auto loc = glGetUniformLocation(shaderProgramId, name.c_str());
     glUniform1f(loc, value);
+}
+
+void ShaderManager::setShaderUniform(unsigned shaderProgramId, const std::string& name, const glm::mat4& value)
+{
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, name.c_str()), 1, GL_FALSE, &value[0][0]);
 }
 
 void ShaderManager::useShader(const unsigned shaderId)

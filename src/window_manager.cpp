@@ -2,14 +2,7 @@
 
 #include <stdexcept>
 
-
-void framebuffer_size_callback(GLFWwindow* _,
-                               const int width, const int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-WindowManager::WindowManager(const int width, const int height, const char* title)
+WindowManager::WindowManager(const int width, const int height, const char* title, const WindowCallbackInfo info)
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -25,6 +18,19 @@ WindowManager::WindowManager(const int width, const int height, const char* titl
     }
 
     glfwMakeContextCurrent(_window);
+    if (info.frameBufferSizeCallback)
+        glfwSetFramebufferSizeCallback(_window, *info.frameBufferSizeCallback);
+    if (info.mouseCallback)
+        glfwSetCursorPosCallback(_window, *info.mouseCallback);
+    if (info.scrollCallback)
+        glfwSetScrollCallback(_window, *info.scrollCallback);
+    if (info.inputCallback)
+        _inputCallBack = *info.inputCallback;
+    if (info.loopCallback)
+        _loopCallBack = *info.loopCallback;
+
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
@@ -33,8 +39,6 @@ WindowManager::WindowManager(const int width, const int height, const char* titl
     }
 
     glViewport(0, 0, width, height);
-
-    glfwSetFramebufferSizeCallback(_window, framebuffer_size_callback);
 }
 
 WindowManager::~WindowManager()
@@ -46,11 +50,6 @@ WindowManager::~WindowManager()
         glfwTerminate();
         _window = nullptr;
     }
-}
-
-void WindowManager::setLoopCallback(const std::function<void(GLFWwindow*)>& callback)
-{
-    _loopCallBack = callback;
 }
 
 void WindowManager::setClearColor(const float r, const float g, const float b, const float a)
@@ -80,11 +79,21 @@ void WindowManager::enableDepthTest()
     glEnable(GL_DEPTH_TEST);
 }
 
-void WindowManager::render() const
+void WindowManager::changeViewport(const int width, const int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void WindowManager::render()
 {
     while (!glfwWindowShouldClose(_window))
     {
-        _loopCallBack(_window);
+        const auto currentTime = static_cast<float>(glfwGetTime());
+        _deltaTime = currentTime - _lastTime;
+        _lastTime = currentTime;
+
+        _inputCallBack(_window, _deltaTime);
+        _loopCallBack(_window, _deltaTime);
 
         if (glfwGetKey(_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(_window, true);

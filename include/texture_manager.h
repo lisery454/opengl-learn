@@ -22,7 +22,7 @@ public:
 
     unsigned buildTexture2D(const Texture2DInitInfo& texture2DInitInfo) const;
 
-    static void useTexture2D(int textureSlot, unsigned textureId);
+    static void useTexture2D(int textureSlotId, unsigned textureId);
 
 private:
     std::shared_ptr<std::vector<unsigned>> _createdTextureIds;
