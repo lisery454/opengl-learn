@@ -2,7 +2,8 @@
 
 #include <stdexcept>
 
-WindowManager::WindowManager(const int width, const int height, const char* title, const WindowCallbackInfo info)
+
+WindowManager::WindowManager(const int width, const int height, const char* title)
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -18,16 +19,12 @@ WindowManager::WindowManager(const int width, const int height, const char* titl
     }
 
     glfwMakeContextCurrent(_window);
-    if (info.frameBufferSizeCallback)
-        glfwSetFramebufferSizeCallback(_window, *info.frameBufferSizeCallback);
-    if (info.mouseCallback)
-        glfwSetCursorPosCallback(_window, *info.mouseCallback);
-    if (info.scrollCallback)
-        glfwSetScrollCallback(_window, *info.scrollCallback);
-    if (info.inputCallback)
-        _inputCallBack = *info.inputCallback;
-    if (info.loopCallback)
-        _loopCallBack = *info.loopCallback;
+
+    setUserPointer(_window, this);
+
+    glfwSetFramebufferSizeCallback(_window, frameBufferSizeCallback);
+    glfwSetCursorPosCallback(_window, mouseCallback);
+    glfwSetScrollCallback(_window, scrollCallback);
 
     // tell GLFW to capture our mouse
     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -84,7 +81,38 @@ void WindowManager::changeViewport(const int width, const int height)
     glViewport(0, 0, width, height);
 }
 
-void WindowManager::render()
+void* WindowManager::getUserPointer(GLFWwindow* window)
+{
+    return glfwGetWindowUserPointer(window);
+}
+
+void WindowManager::setUserPointer(GLFWwindow* window, void* pointer)
+{
+    glfwSetWindowUserPointer(window, pointer);
+}
+
+void WindowManager::frameBufferSizeCallback(GLFWwindow* window, const int width, const int height)
+{
+    const auto windowManager = static_cast<WindowManager*>(getUserPointer(window));
+    if (windowManager->_frameBufferSizeCallback)
+        windowManager->_frameBufferSizeCallback(window, width, height);
+}
+
+void WindowManager::mouseCallback(GLFWwindow* window, const double xPosIn, const double yPosIn)
+{
+    const auto windowManager = static_cast<WindowManager*>(getUserPointer(window));
+    if (windowManager->_mouseCallback)
+        windowManager->_mouseCallback(window, xPosIn, yPosIn);
+}
+
+void WindowManager::scrollCallback(GLFWwindow* window, const double xOffset, double yOffset)
+{
+    const auto windowManager = static_cast<WindowManager*>(getUserPointer(window));
+    if (windowManager->_scrollCallback)
+        windowManager->_scrollCallback(window, xOffset, xOffset);
+}
+
+void WindowManager::update()
 {
     while (!glfwWindowShouldClose(_window))
     {
@@ -92,8 +120,10 @@ void WindowManager::render()
         _deltaTime = currentTime - _lastTime;
         _lastTime = currentTime;
 
-        _inputCallBack(_window, _deltaTime);
-        _loopCallBack(_window, _deltaTime);
+        if (_inputCallback)
+            _inputCallback(_window, _deltaTime);
+        if (_loopCallback)
+            _loopCallback(_window, _deltaTime);
 
         if (glfwGetKey(_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(_window, true);

@@ -17,7 +17,9 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources/
 # exe
 add_executable(OpenGLLearn
         src/camera_manager.cpp
-        include/camera_manager.h)
+        include/camera_manager.h
+        src/render_system.cpp
+        include/render_system.h)
 
 
 target_sources(OpenGLLearn PRIVATE
